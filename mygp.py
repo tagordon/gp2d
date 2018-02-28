@@ -201,12 +201,13 @@ class gp:
         if self.computed is False:
             print('Must call compute() before sampling the GP')
         
-        # prepare mean array from the mean function
-        mean_array = [self.mean(x) for x in self.x]
-        
         if self.dim is 2:
             
-            mean_array = tile(mean_array, len(self.kernel2))
+            mean_array = []
+            for m in self.mean:
+                mean_array.append([m(x) for x in self.x])
+            mean_array = flatten(mean_array)
+            
             n_samp = len(self.kernel2)
             n = n_samp*len(self.x)
             u = np.matrix(np.random.randn(n))
@@ -214,6 +215,7 @@ class gp:
             return unflatten(samp, n_samp, len(self.x))
         
         elif self.dim is 1:
+            mean_array = [self.mean(x) for x in self.x]
             n = len(self.x)
             u = np.matrix(np.random.randn(n))
             return np.array(mean_array + (self.L*u.transpose()).transpose())[0]
@@ -225,10 +227,15 @@ class gp:
             print('Must call compute() before computing log likelihood')
         
         # prepare the mean array from the mean function
-        mean_array = [self.mean(x) for x in self.x]
-        if self.dim > 1:
-            mean_array = tile(mean_array, len(self.kernel2))
         
+        if self.dim > 1:
+            mean_array = []
+            for m in self.mean:
+                mean_array.append([m(x) for x in self.x])
+            mean_array = flatten(mean_array)
+        else: 
+            mean_array = [self.mean(x) for x in self.x]
+
         # fix the data to have correction dimensions
         data = flatten(data)
         
