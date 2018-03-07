@@ -66,18 +66,17 @@ n = int(sys.argv[1])
 n_samp = int(sys.argv[2])
 t_max = 10
 
-A = np.random.rand(n)*20
+A = 100*np.ones(n)
 log_A = np.log(A)
-log_l = np.log(np.random.rand(n))
-log_wn = np.log(np.random.rand(n, n_samp)*10 + 0.5)
+log_l = np.log(np.random.rand(n) + 0.1)
+log_wn = np.log(np.random.rand(n, n_samp)*20 + 30)
 c = np.random.rand(n, n_samp-1)*5
 offset = np.random.rand(n, n_samp)*100
 
 # mean params
-amp = np.random.rand(n)
-amp = [amp*100 + A/2 if (x > 0.5) else amp*(-100) - A/2 for amp, A, x in zip(amp, A, np.random.rand(n))]
-t0 = np.random.rand(n)*t_max
+amp = 3*A
 sig = np.random.rand(n) + 0.5
+t0 = np.random.rand(n)*(t_max - 4*sig) + 2*sig
 mean_params = [[amp, t0, sig] for amp, t0, sig in zip(amp, t0, sig)]
 
 params = [make_params(3, log_A=log_A[i], log_l=log_l[i], log_wn=log_wn[i], c=c[i], mean_params=mean_params[i], offset=offset[i]) for i in range(n)]
