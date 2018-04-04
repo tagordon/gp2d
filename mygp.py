@@ -95,6 +95,64 @@ class kernel:
             return (sig**2)*np.exp(-(r**2)/(2*(l**2))) + (r == 0)*wn
         return k
     
+    def matern32_kernel(l, A, wn=1e-12):
+        '''Defines the Matérn 3/2 kernel'''
+        
+        def k(r):
+            p = np.sqrt(3)*r/l
+            return A*(1 + p)*np.exp(-p) + (r == 0)*wn
+        return k
+    
+    def matern52_kernel(l, A, wn=1e-12):
+        '''Defines the Matérn 5/2 kernel'''
+        
+        def k(r):
+            p = np.sqrt(5)*r/l
+            return A*(1 + p + (p**2)/3)*np.exp(-p) + (r == 0)*wn
+        return k
+    
+    def celerite_root2_kernel(l, S0, wn=1e-12):
+        '''Defines the Q=1/sqrt(2) version of the celerite kernel'''
+        w0 = 1/l
+        
+        def k(r):
+            p = w0*r/np.sqrt(2)
+            return S0*w0*np.exp(-p)*np.cos(p - np.pi/4.) + (r == 0)*wn
+        return k
+    
+    def two_celerite_root2_kernel(l1, S01, l2, S02, wn=1e-12):
+        '''Defines a sum of celerite kernels'''
+        
+        w01 = 1/l1
+        w02 = 1/l2
+        
+        def k(r):
+            p1 = w01*r/np.sqrt(2)
+            p2 = w02*r/np.sqrt(2)
+            comp1 = S01*w01*np.exp(-p1)*np.cos(p1 - np.pi/4.)
+            comp2 = S02*w02*np.exp(-p2)*np.cos(p2 - np.pi/4.)
+            return comp1 + comp2 + (r == 0)*wn
+        return k
+    
+    def two_exp_sq_kernel(l1, sig1, l2, sig2, wn=1e-12):
+        '''Defines a sum of square exponential kernels'''
+        
+        def k(r):
+            comp1 = (sig1**2)*np.exp(-(r**2)/(2*(l1**2)))
+            comp2 = (sig2**2)*np.exp(-(r**2)/(2*(l2**2)))
+            return comp1 + comp2 + (r == 0)*wn
+        return k
+    
+    def two_matern32_kernel(l1, A1, l2, A2, wn=1e-12):
+        '''Defines a sum of matérn 3/2 kernels'''
+        
+        def k(r):
+            p1, p2 =  np.sqrt(3)*r/l1, np.sqrt(3)*r/l2
+            comp1 = A1*(1 + p1)*np.exp(-p1)
+            comp2 = A2*(1 + p2)*np.exp(-p2)
+            return comp1 + comp2 + (r == 0)*wn
+        return k
+    
     def scale_kernel(scale):
         '''Defines the scale kernel, representing scaling by an integer between samples'''
         
@@ -205,7 +263,7 @@ class gp:
             
             mean_array = []
             for m in self.mean:
-                mean_array.append([m(x) for x in self.x])
+                mean_array.append(m(self.x))
             mean_array = flatten(mean_array)
             
             n_samp = len(self.kernel2)
@@ -215,11 +273,11 @@ class gp:
             return unflatten(samp, n_samp, len(self.x))
         
         elif self.dim is 1:
-            mean_array = [self.mean(x) for x in self.x]
+            mean_array = self.mean(self.x)
             n = len(self.x)
             u = np.matrix(np.random.randn(n))
             return np.array(mean_array + (self.L*u.transpose()).transpose())[0]
-    
+            
     def log_likelihood(self, data, x=None):
         '''Computes the log likelihood for the GP'''
         
@@ -231,10 +289,10 @@ class gp:
         if self.dim > 1:
             mean_array = []
             for m in self.mean:
-                mean_array.append([m(x) for x in self.x])
+                mean_array.append(m(self.x))
             mean_array = flatten(mean_array)
         else: 
-            mean_array = [self.mean(x) for x in self.x]
+            mean_array = self.mean(self.x)
 
         # fix the data to have correction dimensions
         data = flatten(data)
