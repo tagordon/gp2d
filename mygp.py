@@ -156,6 +156,7 @@ class kernel:
     def scale_kernel(scale):
         '''Defines the scale kernel, representing scaling by an integer between samples'''
         
+        scale = np.concatenate(([1], scale))
         return np.outer(scale, scale)
     
     def white_noise_kernel(self, white_noise):
