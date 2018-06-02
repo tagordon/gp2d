@@ -3,6 +3,7 @@ from numpy.linalg import cholesky
 from numpy.linalg import eigvals
 from numpy.linalg import inv
 from numpy.linalg import det
+from scipy.linalg.lapack import dtrtri
 from scipy.optimize import minimize
 
 # some useful functions...
@@ -248,7 +249,8 @@ class gp:
         if not self.computed:            
             self.covariance = self._make_covariance_matrix(x)
             self.L = cholesky(self.covariance)
-            self.K_inv = inv(self.covariance)
+            L_inv = np.matrix(dtrtri(self.L, lower=1)[0])
+            self.K_inv = L_inv.transpose()*L_inv
             self.x = x
             self.detK = np.prod(np.diag(self.L))**2
             self.log_detK = 2*np.sum(np.log(np.diag(self.L)))

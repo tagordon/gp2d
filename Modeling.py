@@ -149,8 +149,8 @@ class model:
         def func(p):
             
             m = len(self.k1_params) + len(self.k2_params)
-            p = np.insert(p, m, np.log(self.mean_params))
             p = np.exp(p)
+            p = np.insert(p, m, self.mean_params)
             k1_params, k2_params, mean_params, white_noise, offsets = self._break_params(p)
             self.update_gp(k1_params=k1_params, 
                            k2_params=k2_params, mean_params=mean_params, 
@@ -163,6 +163,14 @@ class model:
         
         return min_params.x, BIC
     
+    def BIC(self, data, t):
+        
+        return self.neg_log_like(data, t) + len(self.get_params())*np.log(len(t)*self.n)
+    
+    
+    def BIC_like(self, data, t, like, n_par):
+        
+        return -like + n_par*np.log(len(t)*self.n)
     
     # like definitely test this...
     def do_mcmc(self, n_steps, n_walkers, n_burnin, data, t, progress=False):
